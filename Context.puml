@@ -1,0 +1,19 @@
+@startuml
+title Warmhouse Context Diagram
+
+top to bottom direction
+
+!includeurl C4_Component.puml
+
+Person(user, "User", "Пользователь системы Теплый дом")
+System(warmhouse, "Система теплый дом", "Система позволяет управлять датчиками, читать с них информацию и управлять отоплением в домах")
+
+System_Ext(sensor, "Датчик", "Получает температуру")
+System_Ext(warmer, "Отопление", "Управление отоплением")
+
+Rel(user, warmhouse, "Пользуется системой")
+Rel(warmhouse,sensor,"запрашивает температуру с датчиков")
+Rel(sensor,warmhouse,"регистрируются в системе")
+Rel(warmhouse,warmer,"управляет системой отопления")
+
+@enduml

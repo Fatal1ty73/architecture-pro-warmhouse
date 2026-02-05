@@ -1,0 +1,30 @@
+@startuml
+title Warmhouse Container Diagram
+
+top to bottom direction
+
+!includeurl C4_Component.puml
+
+Person(user, "User", "Пользователь системы Теплый дом")
+System(warmhouse, "Система теплый дом", "Система позволяет управлять датчиками, читать с них информацию и управлять устройствами в домах")
+
+Container_Boundary(warmhouse, "FitLife System") {
+  Container(WebApp, "Web приложение", "Java, Spring", "Взаимодействует с пользователем")
+  Container(ManageService, "Сервис управления устройствами", "Node.js", "Управляет устройством")
+  Container(HandleService, "Сервис мониторинга", "Node.js", "Обрабатывает показания с датчиков и сохраняет в БД")
+  Container(Database, "Database", "PostgreSQL", "Хранит инфор")
+  Container(Queue, "Queue", "RabbitMQ", "Хранит показания с датчиков")
+}
+
+System_Ext(sensor, "Датчик", "Получает информацию")
+System_Ext(device, "Устройство", "Управление устройством")
+
+Rel(user, WebApp, "Пользуется системой")
+Rel(WebApp,ManageService,"Управляет устройством")
+Rel(WebApp,HandleService,"Менеджмент датчиков")
+Rel(ManageService,device,"Управляет устройством")
+Rel(HandleService,Queue,"Вычитывает данные из очереди")
+Rel(HandleService,Database,"Сохраняет показания с датчиков в БД\Менеджмент датчиков")
+Rel(sensor,Queue,"Отправляет показания датчиков в очередь")
+Rel(WebApp,Database,"Пишет\читает данные")
+@enduml
