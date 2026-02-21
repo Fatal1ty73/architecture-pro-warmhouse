@@ -3,7 +3,7 @@ title Warmhouse Context Diagram
 
 top to bottom direction
 
-!includeurl C4_Component.puml
+!includeurl ../C4_Component.puml
 
 Person(user, "User", "Пользователь системы Теплый дом")
 System(warmhouse, "Система теплый дом", "Система позволяет управлять датчиками, читать с них информацию и управлять отоплением в домах")

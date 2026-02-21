@@ -1,0 +1,24 @@
+@startuml
+title Warmhouse Sensor Manager Service Component Diagram
+
+top to bottom direction
+
+!includeurl ../C4_Component.puml
+
+Container_Boundary(warmhouse, "Warmhouse System") {
+  Container(Database, "Database", "PostgreSQL", "Хранит информацию")
+}
+
+Container(SensorManagerService, "Сервис мониторинга", "Go", "Обрабатывает показания с датчиков и сохраняет в БД") {
+  Component(SensorsController, "SensorsController", "Управляет датчиками")
+  Component(ServiceLayer, "Service Layer", "Сервис бизнес логики")
+  Component(RepositoryLayer, "Repository Layer", "Data access logic")
+}
+
+System_Ext(sensor, "Датчик", "Получает информацию")
+
+Rel(SensorsController,ServiceLayer,"Вызывает бизнес логику")
+Rel(ServiceLayer,RepositoryLayer,"Пишет\читает данные")
+Rel(ServiceLayer,sensor,"Читает данные")
+Rel(RepositoryLayer,Database,"Пишет\читает данные")
+@enduml

@@ -1,0 +1,36 @@
+@startuml
+title Warmhouse Web Application Component Diagram
+
+top to bottom direction
+
+!includeurl ../C4_Component.puml
+
+Container_Boundary(warmhouse, "Warmhouse System") {
+  Container(WebApp, "Web приложение", "Java, Spring", "Взаимодействует с пользователем")
+  Container(Database, "Database", "PostgreSQL", "Хранит информацию")
+  Container(DeviceHandleService, "Сервис управления устройствами", "Java, Spring", "Управляет устройством")
+  Container(SensorManagerService, "Сервис мониторинга", "Java, Spring", "Обрабатывает показания с датчиков и сохраняет в БД")
+}
+
+Container(WebApp, "Web Application", "Java, Spring") {
+  Component(AuthController, "AuthController", "Управляет авторизацией и аутентификацией")
+  Component(UserController, "UserController", "Управляет профилями пользователей")
+  Component(SensorsController, "SensorsController", "Управляет датчиками")
+  Component(DeviceController, "DeviceController", "Управляет устройствами")
+  Component(UserServiceLayer, "UserServiceLayer", "Бизнес логика управления пользователями")
+  Component(DeviceService, "Device Service", "Бизнес логика управления устройствами")
+  Component(SensorService, "Sensor Service", "Бизнес логика управления датчиками")
+  Component(RepositoryLayer, "Repository Layer", "Слой доступа к данным")
+}
+
+Rel(AuthController,UserServiceLayer,"Вызывает бизнес логику")
+Rel(UserController,UserServiceLayer,"Вызывает бизнес логику")
+Rel(SensorsController,SensorService,"Вызывает бизнес логику")
+Rel(DeviceController,DeviceService,"Вызывает бизнес логику")
+Rel(DeviceController,RepositoryLayer,"Пишет\читает данные")
+Rel(SensorsController,RepositoryLayer,"Пишет\читает данные")
+Rel(UserServiceLayer,RepositoryLayer,"Пишет\читает данные")
+Rel(RepositoryLayer,Database,"Пишет\читает данные")
+Rel(DeviceService,DeviceHandleService,"Вызывает микросервис управления устройствами")
+Rel(SensorService,SensorManagerService,"Вызывает микросервис управления датчиками")
+@enduml

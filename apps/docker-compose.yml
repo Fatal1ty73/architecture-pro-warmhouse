@@ -1,19 +1,41 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
     container_name: smarthome-postgres
-  ## тут нужно добавить настройки
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d smarthome"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - smarthome-network
 
   temperature-api:
-  ## тут нужно добавить приложение
-
-  app:
     build:
-      context: ./smart_home
+      context: ./temperature_api
       dockerfile: Dockerfile
-    container_name: smarthome-app
+    container_name: temperature-api
+    environment:
+      - PORT=8081
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+    networks:
+      - smarthome-network
+
+  sensor-manager-service:
+    build:
+      context: ./sensor_manager_service
+      dockerfile: Dockerfile
+    container_name: sensor-manager-service
     depends_on:
       postgres:
         condition: service_healthy
@@ -22,6 +44,88 @@ services:
     environment:
       - DATABASE_URL=postgres://postgres:postgres@postgres:5432/smarthome
       - TEMPERATURE_API_URL=http://temperature-api:8081
+      - PORT=8082
+    ports:
+      - "8082:8082"
+    restart: unless-stopped
+    networks:
+      - smarthome-network
+
+  device-handle-service:
+    build:
+      context: ./device_handle_service
+      dockerfile: Dockerfile
+    container_name: device-handle-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      heating-emulator:
+        condition: service_started
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/smarthome
+      - HEATING_EMULATOR_URL=http://heating-emulator:8086
+    ports:
+      - "8083:8083"
+    restart: unless-stopped
+    networks:
+      - smarthome-network
+
+  heating-emulator:
+    build:
+      context: ./heating_emulator
+      dockerfile: Dockerfile
+    container_name: heating-emulator
+    ports:
+      - "8086:8086"
+    restart: unless-stopped
+    networks:
+      - smarthome-network
+
+  webapp:
+    build:
+      context: ./webapp
+      dockerfile: Dockerfile
+    container_name: warmhouse-webapp
+    depends_on:
+      postgres:
+        condition: service_healthy
+      sensor-manager-service:
+        condition: service_started
+      device-handle-service:
+        condition: service_started
+    environment:
+      - PORT=8084
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/smarthome
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SENSOR_MANAGER_URL=http://sensor-manager-service:8082
+      - DEVICE_HANDLE_URL=http://device-handle-service:8083
+    ports:
+      - "8084:8084"
+    restart: unless-stopped
+    networks:
+      - smarthome-network
+
+  smart-home:
+    build:
+      context: ./smart_home
+      dockerfile: Dockerfile
+    container_name: smarthome-legacy-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      temperature-api:
+        condition: service_started
+      sensor-manager-service:
+        condition: service_started
+      device-handle-service:
+        condition: service_started
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/smarthome
+      - TEMPERATURE_API_URL=http://temperature-api:8081
+      - SENSOR_MANAGER_URL=http://sensor-manager-service:8082
+      - DEVICE_HANDLE_URL=http://device-handle-service:8083
+      - PORT=:8080
     ports:
       - "8080:8080"
     restart: unless-stopped

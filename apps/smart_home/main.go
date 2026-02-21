@@ -31,6 +31,16 @@ func main() {
 	temperatureAPIURL := getEnv("TEMPERATURE_API_URL", "http://temperature-api:8081")
 	temperatureService := services.NewTemperatureService(temperatureAPIURL)
 	log.Printf("Temperature service initialized with API URL: %s\n", temperatureAPIURL)
+	sensorManagerURL := os.Getenv("SENSOR_MANAGER_URL")
+	sensorManagerService := services.NewSensorManagerService(sensorManagerURL)
+	if sensorManagerService != nil {
+		log.Printf("Sensor manager bridge enabled: %s\n", sensorManagerURL)
+	}
+	deviceHandleURL := os.Getenv("DEVICE_HANDLE_URL")
+	deviceHandleService := services.NewDeviceHandleService(deviceHandleURL)
+	if deviceHandleService != nil {
+		log.Printf("Device handle bridge enabled: %s\n", deviceHandleURL)
+	}
 
 	// Initialize router
 	router := gin.Default()
@@ -46,8 +56,10 @@ func main() {
 	apiRoutes := router.Group("/api/v1")
 
 	// Register sensor routes
-	sensorHandler := handlers.NewSensorHandler(database, temperatureService)
+	sensorHandler := handlers.NewSensorHandler(database, temperatureService, sensorManagerService)
 	sensorHandler.RegisterRoutes(apiRoutes)
+	deviceHandler := handlers.NewDeviceHandler(deviceHandleService)
+	deviceHandler.RegisterRoutes(apiRoutes)
 
 	// Start server
 	srv := &http.Server{

@@ -53,7 +53,7 @@
 
 ### 5. Визуализация контекста системы — диаграмма С4
 
-![Context-Warmhouse_Context_Diagram.png](Context-Warmhouse_Context_Diagram.png)
+![Context-Warmhouse_Context_Diagram.png](diagrams/context/Context-Warmhouse_Context_Diagram.png)
 
 # Задание 2. Проектирование микросервисной архитектуры
 
@@ -61,30 +61,31 @@
 
 **Диаграмма контейнеров (Containers)**
 
-Добавьте диаграмму.
+![Container-Warmhouse_Container_Diagram.png](diagrams/container/Container-Warmhouse_Container_Diagram.png)
 
 **Диаграмма компонентов (Components)**
 
-Добавьте диаграмму для каждого из выделенных микросервисов.
+![Component_Webapp-Warmhouse_Web_Application_Component_Diagram.png](diagrams/component/Component_Webapp-Warmhouse_Web_Application_Component_Diagram.png)
+![Component_SensorManager-Warmhouse_Sensor_Manager_Service_Component_Diagram.png](diagrams/component/Component_SensorManager-Warmhouse_Sensor_Manager_Service_Component_Diagram.png)
+![Component_DeviceHandleService-Warmhouse_Device_Handle_Service_Component_Diagram.png](diagrams/component/Component_DeviceHandleService-Warmhouse_Device_Handle_Service_Component_Diagram.png)
 
 **Диаграмма кода (Code)**
 
-Добавьте одну диаграмму или несколько.
-
+![Code-Warmhouse_Management_Code_Diagram.png](diagrams/code/Code-Warmhouse_Management_Code_Diagram.png)
 # Задание 3. Разработка ER-диаграммы
 
-Добавьте сюда ER-диаграмму. Она должна отражать ключевые сущности системы, их атрибуты и тип связей между ними.
+![ER_diagram.png](diagrams/ER/ER_diagram.png)
 
 # Задание 4. Создание и документирование API
 
 ### 1. Тип API
 
-Укажите, какой тип API вы будете использовать для взаимодействия микросервисов. Объясните своё решение.
+REST API. Он хорошо подходит для синхронного взаимодействия, когда клиенту (в данном случае — другому микросервису) нужен немедленный ответ на запрос.
 
 ### 2. Документация API
 
 Здесь приложите ссылки на документацию API для микросервисов, которые вы спроектировали в первой части проектной работы. Для документирования используйте Swagger/OpenAPI или AsyncAPI.
-
+[swagger-api.yaml](swagger-api.yaml)
 # Задание 5. Работа с docker и docker-compose
 
 Перейдите в apps.
