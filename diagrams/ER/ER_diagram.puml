@@ -1,0 +1,71 @@
+@startuml
+
+' hide the spot
+' hide circle
+
+' avoid problems with angled crows feet
+skinparam linetype ortho
+
+entity "Users" as users {
+  *id : number <<generated>>
+  --
+  *name : text
+  *email : text
+  *login : text
+  *password : text
+}
+
+entity "Sensors" as sensors {
+  *id : number <<generated>>
+  --
+* house_id : number <<FK>>
+* name : varchar(100) 
+* type_id : number <<FK>>
+* location : varchar(100) 
+* serial_number : varchar(100) 
+value : float default 0
+unit : varchar(20)
+* status : varchar(20)  default 'inactive'
+* last_updated : timestamp with time zone  default now()
+* created_at : timestamp with time zone  default now()
+}
+
+entity "Houses" as houses {
+  *id : number <<generated>>
+  --
+  * user_id : number <<FK>>
+  * address : text
+}
+
+entity "Devices" as devices {
+  *id : number <<generated>>
+  --
+* house_id : number <<FK>>
+* name : varchar(100) 
+* type_id : number <<FK>>
+* location : varchar(100) 
+* serial_number : varchar(100) 
+* status : varchar(20)  default 'inactive'
+* last_updated : timestamp with time zone  default now()
+* created_at : timestamp with time zone  default now()
+}
+
+entity "DeviceTypes" as dt {
+  *id : number <<generated>>
+  --
+  *name : text
+}
+
+entity "SensorTypes" as st {
+  *id : number <<generated>>
+  --
+  *name : text
+}
+
+users ||..o{ houses
+houses ||..o{ sensors
+houses ||..o{ devices
+st ||..o{ sensors
+dt ||..o{ devices
+
+@enduml

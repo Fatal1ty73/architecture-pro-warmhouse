@@ -18,13 +18,15 @@ import (
 type SensorHandler struct {
 	DB                 *db.DB
 	TemperatureService *services.TemperatureService
+	SensorManager      *services.SensorManagerService
 }
 
 // NewSensorHandler creates a new SensorHandler
-func NewSensorHandler(db *db.DB, temperatureService *services.TemperatureService) *SensorHandler {
+func NewSensorHandler(db *db.DB, temperatureService *services.TemperatureService, sensorManager *services.SensorManagerService) *SensorHandler {
 	return &SensorHandler{
 		DB:                 db,
 		TemperatureService: temperatureService,
+		SensorManager:      sensorManager,
 	}
 }
 
@@ -44,6 +46,15 @@ func (h *SensorHandler) RegisterRoutes(router *gin.RouterGroup) {
 
 // GetSensors handles GET /api/v1/sensors
 func (h *SensorHandler) GetSensors(c *gin.Context) {
+	if h.SensorManager != nil {
+		sensors, err := h.SensorManager.GetSensors()
+		if err == nil {
+			c.JSON(http.StatusOK, sensors)
+			return
+		}
+		log.Printf("Sensor manager unavailable, fallback to local DB: %v", err)
+	}
+
 	sensors, err := h.DB.GetSensors(context.Background())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -75,6 +86,15 @@ func (h *SensorHandler) GetSensorByID(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sensor ID"})
 		return
+	}
+
+	if h.SensorManager != nil {
+		sensor, err := h.SensorManager.GetSensorByID(strconv.Itoa(id))
+		if err == nil {
+			c.JSON(http.StatusOK, sensor)
+			return
+		}
+		log.Printf("Sensor manager unavailable for sensor %d, fallback to local DB: %v", id, err)
 	}
 
 	sensor, err := h.DB.GetSensorByID(context.Background(), id)

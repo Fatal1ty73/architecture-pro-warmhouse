@@ -1,0 +1,939 @@
+openapi: 3.0.4
+swagger: "2.0"
+info:
+  title: Swagger Warmhouse - OpenAPI 3.0
+  version: 1.0.0
+servers:
+  - url: http://localhost:8084/api/v1
+security:
+  - XAuthToken: []
+tags:
+  - name: Users
+  - name: Houses
+  - name: Sensors
+  - name: Devices
+  - name: Auth
+    description: Operations about auth
+paths:
+  /auth/login:
+    get:
+      tags:
+        - Auth
+      security: []
+      summary: Logs user into the system.
+      description: Log into the system.
+      operationId: loginUser
+      parameters:
+        - name: username
+          in: query
+          description: The user name for login
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: The password for login in clear text
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          headers:
+            X-Rate-Limit:
+              description: calls per hour allowed by the user
+              schema:
+                type: integer
+                format: int32
+            X-Expires-After:
+              description: date in UTC when token expires
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/xml:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Invalid username/password supplied
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorBadRequest"
+  /auth/logout:
+    get:
+      tags:
+        - Auth
+      summary: Logs out current logged in user session.
+      description: Log user out of the system.
+      operationId: logoutUser
+      parameters: [ ]
+      responses:
+        '200':
+          description: successful operation
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorBadRequest"
+  /users:
+    get:
+      tags: [Users]
+      summary: List users
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserList"
+    post:
+      tags: [Users]
+      summary: Create user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+      responses:
+        "201":
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /users/{userId}:
+    get:
+      tags: [Users]
+      summary: Get user by id
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Users]
+      summary: Update user (partial)
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Users]
+      summary: Delete user
+      parameters:
+        - $ref: "#/components/parameters/UserId"
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /houses:
+    get:
+      tags: [Houses]
+      summary: List houses
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - name: user_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+          description: Filter by owner (user_id)
+      responses:
+        "200":
+          description: Houses list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HouseList"
+    post:
+      tags: [Houses]
+      summary: Create house
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HouseCreate"
+      responses:
+        "201":
+          description: Created house
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/House"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /houses/{houseId}:
+    get:
+      tags: [Houses]
+      summary: Get house by id
+      parameters:
+        - $ref: "#/components/parameters/HouseId"
+      responses:
+        "200":
+          description: House
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/House"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Houses]
+      summary: Update house (partial)
+      parameters:
+        - $ref: "#/components/parameters/HouseId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HouseUpdate"
+      responses:
+        "200":
+          description: Updated house
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/House"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Houses]
+      summary: Delete house
+      parameters:
+        - $ref: "#/components/parameters/HouseId"
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /sensors:
+    get:
+      tags: [Sensors]
+      summary: List sensors
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - name: house_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+          description: Filter by house_id
+        - name: type_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+          description: Filter by type_id
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by status
+      responses:
+        "200":
+          description: Sensors list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SensorList"
+    post:
+      tags: [Sensors]
+      summary: Create sensor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SensorCreate"
+      responses:
+        "201":
+          description: Created sensor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sensor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /sensors/{sensorId}:
+    get:
+      tags: [Sensors]
+      summary: Get sensor by id
+      parameters:
+        - $ref: "#/components/parameters/SensorId"
+      responses:
+        "200":
+          description: Sensor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sensor"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Sensors]
+      summary: Update sensor (partial)
+      parameters:
+        - $ref: "#/components/parameters/SensorId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SensorUpdate"
+      responses:
+        "200":
+          description: Updated sensor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sensor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Sensors]
+      summary: Delete sensor
+      parameters:
+        - $ref: "#/components/parameters/SensorId"
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /devices:
+    get:
+      tags: [Devices]
+      summary: List devices
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+        - name: house_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+          description: Filter by house_id
+        - name: type_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+          description: Filter by type_id
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by status
+      responses:
+        "200":
+          description: Devices list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceList"
+    post:
+      tags: [Devices]
+      summary: Create device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceCreate"
+      responses:
+        "201":
+          description: Created device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /devices/{deviceId}:
+    get:
+      tags: [Devices]
+      summary: Get device by id
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      responses:
+        "200":
+          description: Device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Devices]
+      summary: Update device (partial)
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceUpdate"
+      responses:
+        "200":
+          description: Updated device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Devices]
+      summary: Delete device
+      parameters:
+        - $ref: "#/components/parameters/DeviceId"
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /devices/{deviceId}/execute:
+    post:
+      tags: [Devices]
+      summary: Execute device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceExecute"
+      responses:
+        "200":
+          description: Device execute
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+
+components:
+  securitySchemes:
+    XAuthToken:
+      type: apiKey
+      in: header
+      name: X-Auth-Token
+      description: Auth token returned by `/auth/login`. Send it in header `X-Auth-Token`.
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+    Offset:
+      name: offset
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+    HouseId:
+      name: houseId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+    SensorId:
+      name: sensorId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+    DeviceId:
+      name: deviceId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+    DeviceTypeId:
+      name: deviceTypeId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+    SensorTypeId:
+      name: sensorTypeId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorBadRequest"
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorNotFound"
+
+  schemas:
+    ErrorBadRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          example: "BAD_REQUEST"
+        message:
+          type: string
+          example: "Bad request error"
+        details:
+          type: object
+          additionalProperties: true
+      required: [code, message]
+    ErrorNotFound:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          example: "NOT FOUND"
+        message:
+          type: string
+          example: "Not found error"
+        details:
+          type: object
+          additionalProperties: true
+      required: [code, message]
+
+    # ---------- Users ----------
+    User:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        login:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+      required: [id, name, email, login]
+
+    UserCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        login:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+      required: [name, email, login, password]
+
+    UserUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        login:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+      minProperties: 1
+
+    UserList:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+      required: [items, limit, offset, total]
+
+    # ---------- Houses ----------
+    House:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: integer
+          format: int64
+        user_id:
+          type: integer
+          format: int64
+        address:
+          type: string
+      required: [id, user_id, address]
+
+    HouseCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        user_id:
+          type: integer
+          format: int64
+        address:
+          type: string
+      required: [user_id, address]
+
+    HouseUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        address:
+          type: string
+      minProperties: 1
+
+    HouseList:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/House"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+      required: [items, limit, offset, total]
+
+    # ---------- Sensors ----------
+    Sensor:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: integer
+          format: int64
+        house_id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          maxLength: 100
+        type_id:
+          type: integer
+          format: int64
+        location:
+          type: string
+          maxLength: 100
+        serial_number:
+          type: string
+          maxLength: 100
+        value:
+          type: number
+          format: float
+          default: 0
+        unit:
+          type: string
+          maxLength: 20
+        status:
+          type: string
+          default: inactive
+        last_updated:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - house_id
+        - name
+        - type_id
+        - location
+        - serial_number
+        - status
+        - last_updated
+        - created_at
+
+    SensorCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        house_id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          maxLength: 100
+        type_id:
+          type: integer
+          format: int64
+        location:
+          type: string
+          maxLength: 100
+        serial_number:
+          type: string
+          maxLength: 100
+        value:
+          type: number
+          format: float
+          default: 0
+        unit:
+          type: string
+          maxLength: 20
+        status:
+          type: string
+          default: inactive
+      required: [house_id, name, type_id, location, serial_number, status]
+
+    SensorUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        type_id:
+          type: integer
+          format: int64
+        location:
+          type: string
+          maxLength: 100
+        serial_number:
+          type: string
+          maxLength: 100
+        value:
+          type: number
+          format: float
+        unit:
+          type: string
+          maxLength: 20
+        status:
+          type: string
+      minProperties: 1
+
+    SensorList:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Sensor"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+      required: [items, limit, offset, total]
+
+    # ---------- Devices ----------
+    Device:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: integer
+          format: int64
+        house_id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          maxLength: 100
+        type_id:
+          type: integer
+          format: int64
+        location:
+          type: string
+          maxLength: 100
+        serial_number:
+          type: string
+          maxLength: 100
+        status:
+          type: string
+          default: inactive
+        last_updated:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - house_id
+        - name
+        - type_id
+        - location
+        - serial_number
+        - status
+        - last_updated
+        - created_at
+
+    DeviceCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        house_id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          maxLength: 100
+        type_id:
+          type: integer
+          format: int64
+        location:
+          type: string
+          maxLength: 100
+        serial_number:
+          type: string
+          maxLength: 100
+        status:
+          type: string
+          default: inactive
+      required: [house_id, name, type_id, location, serial_number, status]
+
+
+    DeviceExecute:
+      type: object
+      additionalProperties: false
+      properties:
+        set_value:
+          type: integer
+          format: int64
+      required: []
+
+    DeviceUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        type_id:
+          type: integer
+          format: int64
+        location:
+          type: string
+          maxLength: 100
+        serial_number:
+          type: string
+          maxLength: 100
+        status:
+          type: string
+      minProperties: 1
+
+    DeviceList:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Device"
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+      required: [items, limit, offset, total]

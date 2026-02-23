@@ -1,0 +1,68 @@
+@startuml
+title Warmhouse Management Code Diagram
+
+top to bottom direction
+
+!includeurl ../C4_Component.puml
+
+class User {
+  +String name
+  +String email
+  +List<House> houses
+  +void register()
+  +void login()
+}
+
+class House {
+  +List<Device> devices
+  +List<Sensor> sensors
+  +String address
+  +Date startDate
+  +Date endDate
+  +boolean status
+  +boolean isActive()
+  +boolean create()
+  +boolean delete()
+  +boolean update()
+}
+
+class Device {
+  +Date registerDate
+  +String name
+  +String serialNumber
+  +boolean status
+  +DeviceType deviceType
+  +void activate()
+  +boolean create()
+  +boolean delete()
+  +boolean update()
+}
+
+class DeviceType {
+  +int id
+  +String name
+}
+
+class Sensor {
+  +Date registerDate
+  +String name
+  +String serialNumber
+  +boolean status
+  +SensorType sensorType
+  +boolean create()
+  +boolean delete()
+  +boolean update()
+}
+
+class SensorType {
+  +int id
+  +String name
+}
+
+User "1" -- "0..*" House : has
+House "1" -- "0..*" Device : has
+House "1" -- "0..*" Sensor : has
+Device "1" -- "1" DeviceType : includes
+Sensor "1" -- "1" SensorType : includes
+
+@enduml
